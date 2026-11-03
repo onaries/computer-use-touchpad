@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+chrome-profile/
+browser-profile*/
+data/
+backups/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+.omo/
+.codex/
+artifacts/
