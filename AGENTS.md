@@ -1,4 +1,4 @@
-# Oracle noVNC 작업 규칙
+# Computer Use Touchpad 작업 규칙
 
 - 이 디렉터리는 독립 Git 저장소다. `index.html`과 `touchpad.js`가 운영 조작 화면의 소스다.
 - 작업 전에 README의 실행 구성과 적용 위치를 확인한다. Oracle 실행본은 변경 가능한 외부 상태이므로 수정 전 다시 대조한다.

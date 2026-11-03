@@ -1,6 +1,6 @@
-# Oracle noVNC
+# Computer Use Touchpad
 
-Oracle computer-use의 조작 페이지와 noVNC 입력 확장을 관리한다.
+computer-use 환경에 터치패드 조작을 추가하는 페이지와 noVNC 입력 확장을 관리한다. 상대 좌표 이동, 탭 좌클릭, 두 손가락 스크롤과 별도 좌우 클릭 버튼을 제공한다.
 
 ## 실행 구성
 
