@@ -1,50 +1,54 @@
 # Computer Use Touchpad
 
-computer-use 환경에 터치패드 조작을 추가하는 페이지와 noVNC 입력 확장을 관리한다. 상대 좌표 이동, 탭 좌클릭, 두 손가락 스크롤과 별도 좌우 클릭 버튼을 제공한다.
+English | [한국어](README.ko.md)
 
-## 실행 구성
+A control page and noVNC input extension that add touchpad controls to an existing computer-use environment. Supports relative cursor movement, tap to left-click, two-finger scrolling, and separate left- and right-click buttons.
 
-- 조작 페이지: HTTP 8088
-- noVNC: HTTP 6080
-- 원격 화면: 기존 computer-use 컨테이너의 VNC 서버
+## Runtime setup
 
-| 파일 | 역할 | 실행 환경의 적용 위치 |
+- Control page: HTTP port 8088
+- noVNC: HTTP port 6080
+- Remote desktop: the VNC server in the existing computer-use container
+
+| File | Purpose | Runtime location |
 | --- | --- | --- |
-| `index.html` | 도구 메뉴, 입력 모드, 화면 제어, 외부 터치패드 | computer-use 설치 폴더의 `index.html` |
-| `touchpad.js` | 외부 패드 명령을 noVNC 마우스와 휠 입력으로 전달 | 컨테이너의 `/opt/noVNC/app/touchpad.js` |
+| `index.html` | Tool menu, input modes, screen control, and external touchpad | `index.html` in the computer-use installation directory |
+| `touchpad.js` | Converts external touchpad commands into noVNC mouse and wheel input | `/opt/noVNC/app/touchpad.js` inside the container |
 
-이 두 파일은 기존 computer-use 환경에서 사용한다. Docker 이미지, Chrome 프로필, VNC 서버는 해당 환경에서 관리한다.
+These files run within an existing computer-use environment. Its Docker image, Chrome profile, and VNC server are managed separately.
 
-## 사용 방법
+## Usage
 
-1. 조작 페이지를 열고 입력 모드를 `터치패드`로 선택한다.
-2. `화면 제어 켜기`를 누른다.
-3. 패드를 쓸어 커서를 이동하고 두 손가락으로 스크롤한다.
-4. 패드를 움직이지 않고 짧게 탭하면 현재 커서 위치에서 좌클릭한다. 500ms를 넘는 누름이나 이동한 제스처는 클릭하지 않는다.
-5. 패드 아래의 좌클릭과 우클릭 버튼도 사용할 수 있다.
+The current interface uses Korean labels.
 
-제어가 꺼져 있거나 noVNC가 view-only이면 패드 입력을 보내지 않는다. 터치 모드는 noVNC의 기존 화면 직접 조작을 사용한다.
+1. Open the control page and select touchpad mode (`입력: 터치패드`).
+2. Enable screen control (`화면 제어 켜기`).
+3. Swipe on the pad to move the cursor. Use two fingers to scroll.
+4. Tap without moving to left-click at the current cursor position. A press longer than 500 ms or a gesture with movement does not trigger a click.
+5. You can also use the left-click (`좌클릭`) and right-click (`우클릭`) buttons below the pad.
 
-## 적용과 복구
+The pad sends no input when screen control is disabled or noVNC is in view-only mode. Touch mode uses noVNC's existing direct screen controls.
 
-1. 실행본과 저장소의 차이, 적용 대상 컨테이너와 볼륨 연결을 확인한다.
-2. 기존 파일을 실행 환경의 백업 폴더에 보관한다.
-3. `index.html`을 기존 파일에 복사한다. 단일 파일 bind mount를 사용하므로 파일 교체 후 호스트, 컨테이너 마운트와 HTTP 응답의 SHA-256이 일치하는지 확인한다.
-4. `touchpad.js`를 바꾸면 실행 컨테이너와 다음 이미지 빌드에 쓰이는 원본을 함께 반영한다. 기존 Dockerfile은 이 파일을 `/opt/noVNC/app/touchpad.js`로 복사하고 `vnc.html`에 모듈을 등록한다. 내용이 바뀌면 모듈 URL의 캐시 버전도 갱신한다.
-5. 조작 페이지를 새로고침하고 화면 제어, 이동, 클릭과 스크롤을 확인한다.
-6. 문제가 있으면 백업을 복원하고 동일한 해시 확인과 입력 검증을 수행한다.
+## Applying changes and restoring a backup
 
-현재 환경에는 noVNC 리사이즈 처리 후 `_saveExpectedClientSize()`를 호출하는 보완도 있다. noVNC 자체 버전을 바꿀 때 해당 호환성 보완을 함께 확인한다.
+1. Compare the running files with this repository. Check the target container and its volume mounts.
+2. Back up the existing files in the runtime environment.
+3. Copy `index.html` over the existing file. The current environment uses a single-file bind mount; after copying, confirm that the host file, container-mounted file, and HTTP response have matching SHA-256 hashes.
+4. When changing `touchpad.js`, update both the running container and the source used for the next image build. The existing Dockerfile copies this file to `/opt/noVNC/app/touchpad.js` and registers the module in `vnc.html`. Update the module URL's cache version when its contents change.
+5. Reload the control page and check screen control, cursor movement, clicks, and scrolling.
+6. If a problem occurs, restore the backup and repeat the hash and input checks.
 
-## 입력 변경 검증
+The current environment also calls `_saveExpectedClientSize()` after noVNC's resize handling. Check this compatibility adjustment when updating noVNC itself.
 
-- 실제 Chromium 터치 이벤트로 패드 입력을 검사한다.
-- 공용 원격 화면을 조작하지 않도록 검증용 브라우저의 RFB 포인터 전송을 가로채 패킷을 확인한다.
-- 이동 중 클릭 없음, 두 손가락 스크롤, 취소, 제어 비활성, 좌우 버튼과 마우스 캡처 해제를 확인한다.
-- 휴대폰에서의 실제 터치 감도는 별도로 확인한다.
+## Input verification
 
-2026-11-03 탭 좌클릭 추가 당시의 실행본 검증 결과는 `verification/2026-11-03-tap-click.json`에 기록했다. 저장소 등록 시에는 소스 해시와 JavaScript 문법을 확인했다.
+- Test pad input using real Chromium touch events.
+- Intercept outgoing RFB pointer packets in the QA browser to avoid controlling the shared remote desktop.
+- Check that movement does not click, two-finger scrolling works, canceled gestures send no click, disabled controls send no input, both click buttons work, and mouse capture is released.
+- Check touch sensitivity separately on a physical phone.
 
-## 이력 기준
+The live verification results from the tap-to-click change on 2026-11-03 are recorded in [the verification report](verification/2026-11-03-tap-click.json). Source hashes and JavaScript syntax were checked when importing the files into this repository.
 
-최초 커밋은 2026-11-03 탭 클릭 추가 직전의 Oracle 실행 페이지 백업과 같은 시점의 입력 확장을 가져온 기준본이다. 기존 변경의 작성 날짜를 소급한 Git 이력은 아니다.
+## History baseline
+
+The first commit imports the Oracle control page backup from immediately before the tap-to-click change on 2026-11-03, along with the input extension from the same environment. Earlier work is not reconstructed as backdated Git commits.
