@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-03",
+  "scope": "Previously completed live Oracle noVNC tap-click verification; not rerun during Git import",
+  "method": "Trusted Chromium touch events with RFB pointer packets intercepted in the QA browser to avoid controlling the shared desktop",
+  "sha256": {
+    "baseline_index": "b847bacfa56b66b84defb03064892c7a5250552ff80c5323eba1d9ce7fb6ecc4",
+    "live_index": "1bbe7d4ea084bdca81a5996b255a48e6615b752d0641adee96f92a11f69cc7c5",
+    "touchpad_module": "f60a6544f627c8b121ff0235dd2a38ef607c0709791708772a16586cb29ba0ed"
+  },
+  "checks": [
+    {
+      "name": "trusted_tap_left_clicks_once_and_releases",
+      "result": "pass"
+    },
+    {
+      "name": "small_and_large_swipes_move_without_clicking",
+      "result": "pass"
+    },
+    {
+      "name": "two_finger_scroll_preserved_without_clicking",
+      "result": "pass"
+    },
+    {
+      "name": "canceled_touch_never_clicks",
+      "result": "pass"
+    },
+    {
+      "name": "long_press_never_clicks",
+      "result": "pass"
+    },
+    {
+      "name": "two_finger_tap_never_left_clicks",
+      "result": "pass"
+    },
+    {
+      "name": "blur_cancels_pending_tap",
+      "result": "pass"
+    },
+    {
+      "name": "disabled_control_sends_no_input",
+      "result": "pass"
+    },
+    {
+      "name": "existing_left_and_right_click_buttons_preserved",
+      "result": "pass"
+    },
+    {
+      "name": "no_stuck_noVNC_mouse_capture",
+      "result": "pass"
+    }
+  ],
+  "visual_review": {
+    "result": "approved",
+    "viewports": [
+      {
+        "width": 390,
+        "height": 844
+      },
+      {
+        "width": 1440,
+        "height": 900
+      }
+    ],
+    "remote_desktop_iframes_hidden_in_captures": true
+  },
+  "physical_phone_tested": false
+}

@@ -142,7 +142,7 @@
                     <button id="toggleSidebar" class="btn">◀ 메뉴 숨기기</button>
                     <a id="openDevTools" href="/debug.html" target="_blank" rel="noopener" class="btn btn-primary">🛠️ Remote DevTools</a>
                     <button id="toggleViewOnly" class="btn">Toggle Screen Control (Off)</button>
-                    <button id="toggleInputMode" class="btn" aria-pressed="false" title="아래 패드로 이동, 버튼으로 클릭">입력: 터치</button>
+                    <button id="toggleInputMode" class="btn" aria-pressed="false" title="아래 패드로 이동, 탭하거나 버튼으로 클릭">입력: 터치</button>
                 </div>
             </div>
             <div class="workspace">
@@ -160,7 +160,7 @@
                 ></iframe>
             </div>
             <section id="touchpadControls" class="touchpad-controls" aria-label="터치패드 조작" hidden>
-                <div id="touchpadSurface" class="touchpad-surface" role="group" aria-label="커서 이동 터치패드" data-enabled="false">
+                <div id="touchpadSurface" class="touchpad-surface" role="group" aria-label="커서 이동과 좌클릭 터치패드" data-enabled="false">
                     <span id="touchpadHint" class="touchpad-hint"></span>
                     <button id="enablePadControl" type="button" class="btn btn-primary">화면 제어 켜기</button>
                 </div>
@@ -183,17 +183,18 @@
                 let padEnabled = false;
                 const pad = document.getElementById("touchpadSurface");
                 const pointers = new Map();
+                let tap = null;
                 function setPadEnabled(enabled) {
                     const next = enabled && inputMode === "touchpad";
                     if (next === padEnabled) return;
                     padEnabled = next;
-                    if (!padEnabled) pointers.clear();
+                    if (!padEnabled) { pointers.clear(); tap = null; }
                     pad.dataset.enabled = String(padEnabled);
                     document.getElementById("padLeftClick").disabled = !padEnabled;
                     document.getElementById("padRightClick").disabled = !padEnabled;
                     document.getElementById("enablePadControl").hidden = padEnabled;
                     document.getElementById("touchpadHint").innerText = padEnabled
-                        ? "쓸어서 커서 이동 · 두 손가락 스크롤\n클릭은 아래 버튼" : "";
+                        ? "쓸어서 커서 이동, 두 손가락 스크롤\n가볍게 탭하면 좌클릭" : "";
                 }
                 function sendPadInput(body) {
                     if (padEnabled) vncIframe.contentWindow.postMessage({ type: "cu-pad-input", ...body }, new URL(vncIframe.src).origin);
@@ -206,12 +207,15 @@
                 pad.addEventListener("pointerdown", function (event) {
                     if (!padEnabled || event.target.closest("button") || (event.pointerType === "mouse" && event.button !== 0)) return;
                     event.preventDefault();
+                    tap = pointers.size === 0 ? { pointerId: event.pointerId, x: event.clientX,
+                        y: event.clientY, started: event.timeStamp } : null;
                     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
                     pad.setPointerCapture(event.pointerId);
                 });
                 pad.addEventListener("pointermove", function (event) {
                     if (!padEnabled || !pointers.has(event.pointerId)) return;
                     event.preventDefault();
+                    if (tap && (event.clientX !== tap.x || event.clientY !== tap.y)) tap = null;
                     const before = center();
                     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
                     const after = center();
@@ -219,10 +223,17 @@
                         dx: after.x - before.x, dy: after.y - before.y });
                 });
                 for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
-                    pad.addEventListener(type, event => { pointers.delete(event.pointerId); });
+                    pad.addEventListener(type, event => {
+                        const clicked = event.type === "pointerup" && pointers.size === 1
+                            && tap?.pointerId === event.pointerId && event.timeStamp - tap.started <= 500
+                            && event.clientX === tap.x && event.clientY === tap.y;
+                        pointers.delete(event.pointerId);
+                        tap = null;
+                        if (clicked) sendPadInput({ action: "click", button: 0 });
+                    });
                 }
                 pad.addEventListener("contextmenu", event => event.preventDefault());
-                window.addEventListener("blur", () => pointers.clear());
+                window.addEventListener("blur", () => { pointers.clear(); tap = null; });
                 document.getElementById("padLeftClick").addEventListener("click", () => sendPadInput({ action: "click", button: 0 }));
                 document.getElementById("padRightClick").addEventListener("click", () => sendPadInput({ action: "click", button: 2 }));
                 document.getElementById("enablePadControl").addEventListener("click", () => document.getElementById("toggleViewOnly").click());
